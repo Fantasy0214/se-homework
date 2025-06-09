@@ -1,6 +1,6 @@
 pub mod charging_pile;
 mod vehicle;
-mod charging_request;
+pub mod charging_request;
 mod charging_record;
 pub mod user;
 

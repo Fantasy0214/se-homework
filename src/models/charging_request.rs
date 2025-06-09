@@ -252,6 +252,32 @@ impl ChargingRequest {
         .await?;
         Ok(())
     }
+    pub async fn get_waiting_requests(
+        pool: &MySqlPool,
+        pile_id: Uuid,
+    ) -> Result<Vec<Self>, sqlx::Error> {
+        sqlx::query_as!(
+            Self,
+            r#"
+            SELECT
+                cr.id            AS "id!: Uuid",
+                cr.user_id       AS "user_id!: Uuid",
+                cr.mode          AS "mode!: ChargingMode",
+                CAST(cr.amount AS DOUBLE)  AS "amount!: f64",
+                cr.queue_number  AS "queue_number!: String",
+                cr.status        AS "status!: RequestStatus",
+                cr.created_at    AS "created_at!: DateTime<Utc>"
+            FROM charging_request AS cr
+            JOIN charging_piles   AS cp ON cp.number = cr.queue_number
+            WHERE cp.id    = ?
+            ORDER BY cr.created_at
+            "#,
+            pile_id,
+        )
+
+        .fetch_all(pool)
+        .await
+    }
 }
 
 #[cfg(test)]
